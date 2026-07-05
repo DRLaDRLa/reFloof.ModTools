@@ -191,9 +191,12 @@ export default class Records {
             title: "Advertising",
             group: this.RuleGroups.messages,
             rules: [
-                "Do not advertise on e6ai.", '* No advertisements for paid content of any kind.', '* No paywall logos (e.g. Patreon).', '* No mentions or links to paywalled content in the description or source.', '* No indirect advertising (This includes links to social media profiles, "Linktrees," or landing pages that primarily serve to redirect users to paywalled content.)'
+                "Do not advertise on e6ai.",
+                '* No links, logos, or references to paywall services such as Patreon, SubscribeStar, Fanbox, etc.',
+                '* No mentions or advertisements for paid content in profiles, post descriptions, comments, forums etc.',
+                '* No posts that are intentionally watermarked, censored, compressed, degraded, or otherwise presented as teasers for paid versions.'
             ],
-            postface: 'Exceptions: Tip jars and Commissions using the "Commission Info" field on your profile is allowed. See the "advertisement section of the uploading guidelines":/wiki_pages/uploading_guidelines#ads for more info.'
+            postface: 'Exceptions: see the "advertisement section of the uploading guidelines":/wiki_pages/uploading_guidelines#ads for more info.'
         },
 
 
