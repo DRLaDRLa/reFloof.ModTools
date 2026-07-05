@@ -210,8 +210,8 @@ export const PageDefinition = {
     view: /^\/wiki_pages\/.+/,      // 1
   },
   artists: {
-    list: /^\/artists\/?$/,
-    view: /^\/artists\/.+/,         // 1
+    list: /^\/directors\/?$/,
+    view: /^\/directors\/.+/,         // 1
   },
   help: {
     list: /^\/help\/?4/,

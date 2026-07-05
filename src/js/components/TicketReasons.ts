@@ -55,7 +55,7 @@ export default class TicketReasons extends Component {
       { title: "Already (Rec)", body: "Thank you for your report, but this user has already received a record for this matter." },
       { title: "Already (Ban)", body: "Thank you for your report, but this user is already banned." },
       { title: "Blacklist", body: 'Thank you for your report, but this post\'s content does not violate our "uploading guidelines":[/help/uploading_guidelines].\nIf you find the contents of the post objectionable, we\'d ask you to add the relevant tags (or the post\'s id itself) to your "blacklist":[/help/blacklist].' },
-      { title: "Takedown", body: 'Thank you for your report, but this matter needs to be handled via a takedown request.\nArtists/directors may request a takedown "here":/static/takedown.\nWe do not accept third party takedowns.' },
+      { title: "Takedown", body: 'Thank you for your report, but this matter needs to be handled via a takedown request.\nDirectors may request a takedown "here":/static/takedown.\nWe do not accept third party takedowns.' },
       { title: "DMed", body: "Thank you for your report, we've discussed the matter with them."},
     ];
   }
