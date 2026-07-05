@@ -1,83 +1,95 @@
 import { PageDefinition } from "../models/data/Page";
-import { DialogForm } from "../models/structure/DialogForm";
 import { TemplateBuilder, TemplateData } from "../models/structure/TemplateBuilder";
 import { html } from "../utilities/HtmlTemplate";
-import Util from "../utilities/Util";
 import Component from "./Component";
 
-interface StoredButton extends TemplateData {
+// #region Type Stuff
+interface LabeledButton extends TemplateData {
 	/** Legacy field kept for backward compatibility with stored data. */
-	label?: string;
-	/** Legacy field kept for backward compatibility with stored data. */
-	text?: string;
+	label: string;
 }
+
+interface AtypicalButton extends TemplateData {
+	/** Legacy field kept for backward compatibility with stored data. */
+	text: string;
+}
+
+interface StoredButton extends AtypicalButton, LabeledButton {}
+
+type Settings = {
+  enabled: boolean;
+  buttons: (AtypicalButton | LabeledButton | StoredButton | TemplateData)[];
+  insertMode: "replace" | "insert";
+  greeting: string;
+};
+// #endregion Type Stuff
 
 const DEFAULT_GREETING = "Hi %recipientName%,\n\n";
 
 export default class DMailBuilder extends Component {
-	public Settings: { enabled: boolean; buttons: StoredButton[]; insertMode: "replace" | "insert"; greeting: string } = {
-		enabled: true,
-		buttons: DMailBuilder.defaultTemplates,
-		insertMode: "insert",
-		greeting: DEFAULT_GREETING,
-	};
+  public Settings: Settings = {
+    enabled: true,
+    buttons: DMailBuilder.defaultTemplates,
+    insertMode: "insert",
+    greeting: DEFAULT_GREETING,
+  };
 
-	private builder?: TemplateBuilder;
+  private builder?: TemplateBuilder;
 
-	public constructor() {
-		super({
-			constraint: PageDefinition.dmails.new,
-			waitForDOM: "form.new_dmail .dtext_formatter",
-		});
-	}
+  public constructor() {
+    super({
+      constraint: PageDefinition.dmails.new,
+      waitForDOM: "form.new_dmail .dtext_formatter",
+    });
+  }
 
-	public static get defaultTemplates(): TemplateData[] {
-		return [];
-	}
+  public static get defaultTemplates(): TemplateData[] {
+    return [];
+  }
 
   private readonly settingsButtonLabel = "DMail Template Settings";
-	protected create(): Promise<void> {
+  protected create(): Promise<void> {
     this.initSettingsMenu();
-		const target = document.querySelector<HTMLTextAreaElement>("form.new_dmail textarea[name='dmail[body]']");
-		if (!target) return Promise.resolve();
+    const target = document.querySelector<HTMLTextAreaElement>("form.new_dmail textarea[name='dmail[body]']");
+    if (!target) return Promise.resolve();
 
     const scopedInsertMode = () => this.Settings.insertMode;
-		this.builder = new TemplateBuilder({
-			targetField: target,
-			label: "DMail templates",
-			get insertMode() { return scopedInsertMode(); },
-			defaults: DMailBuilder.defaultTemplates,
-			getTemplates: () => this.Settings.buttons.map((b) => ({
-				title: b.title ?? b.label ?? "",
-				body: b.body ?? b.text ?? "",
-			})),
-			setTemplates: (next) => { this.Settings.buttons = next; },
-			transform: (template) => {
-				const greeting = this.Settings.greeting;
-				const text = greeting.includes("%body%")
-					? greeting.replace("%body%", template.body)
-					: `${greeting}${template.body}`;
-				// This is initially empty, so we load it on insertion
-				const recipientName = (document.getElementById("dmail_to_name") as HTMLInputElement | undefined)?.value ?? "";
-				return text.replace(/%recipientName%/g, recipientName);
-			},
-			pinnedChip: {
-				title: "Greeting",
-				getBody: () => this.Settings.greeting,
-				setBody: (body) => { this.Settings.greeting = body; },
-				defaultBody: DEFAULT_GREETING,
-			},
-		});
-		this.builder.mount();
-		return Promise.resolve();
-	}
+    this.builder = new TemplateBuilder({
+      targetField: target,
+      label: "DMail templates",
+      get insertMode() { return scopedInsertMode(); },
+      defaults: DMailBuilder.defaultTemplates,
+      getTemplates: () => this.Settings.buttons.map((b) => ({
+        title: b.title ?? b.label ?? "",
+        body: b.body ?? b.text ?? "",
+      } as TemplateData)),
+      setTemplates: (next) => { this.Settings.buttons = next; },
+      transform: (template) => {
+        const greeting = this.Settings.greeting;
+        const text = greeting.includes("%body%")
+          ? greeting.replace("%body%", template.body)
+          : `${greeting}${template.body}`;
+        // This is empty on page load, so we load it on insertion instead
+        const recipientName = (document.getElementById("dmail_to_name") as HTMLInputElement | undefined)?.value ?? "";
+        return text.replace(/%recipientName%/g, recipientName);
+      },
+      pinnedChip: {
+        title: "Greeting",
+        getBody: () => this.Settings.greeting,
+        setBody: (body) => { this.Settings.greeting = body; },
+        defaultBody: DEFAULT_GREETING,
+      },
+    });
+    this.builder.mount();
+    return Promise.resolve();
+  }
 
-	protected async destroy(): Promise<void> {
-		this.builder?.destroy();
-	}
+  protected async destroy(): Promise<void> {
+    this.builder?.destroy();
+  }
 
   private initSettingsMenu() {
-    this._settingsMenuDialogParameters = {
+    this.settingsMenuDialogParameters = {
       elements: [
         $(html`<fieldset title="How should the button's text be added to the text box?">
             <legend>Text insertion mode</legend>

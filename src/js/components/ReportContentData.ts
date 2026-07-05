@@ -1,6 +1,5 @@
 import XM from "../models/api/XM";
 import { PageDefinition } from "../models/data/Page";
-import { DialogForm } from "../models/structure/DialogForm";
 import Modal from "../models/structure/Modal";
 import ErrorHandler from "../utilities/ErrorHandler";
 import { html } from "../utilities/HtmlTemplate";
@@ -116,7 +115,7 @@ export default class ReportContentData extends Component {
   }
 
   private initSettingsMenu() {
-    this._settingsMenuDialogParameters = {
+    this.settingsMenuDialogParameters = {
       elements: [
         $(`<label for="setting-loadMessage" title="Should the reported content be loaded onto this page next time?">Load Message? <input type="checkbox" id="setting-loadMessage" name="setting-loadMessage" value="true" ${this.Settings.loadMessage ? "checked" : ""}></input></label><br />`),
       ],

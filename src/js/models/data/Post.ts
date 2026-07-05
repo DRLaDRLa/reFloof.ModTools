@@ -4,32 +4,32 @@ import { Tag } from "./Tag";
 
 export default class Post {
 
-    public source: "DOM" | "POST" | "API";
+  public source: "DOM" | "POST" | "API";
 
-    public id: number;
-    public flags: Set<PostFlag>;
-    public score: {
+  public id: number;
+  public flags: Set<PostFlag>;
+  public score: {
         up: number;
         down: number;
         total: number;
     }
-    public user_score: number;              // user's current vote. might be undefined if no vote has been registered this session
-    public favorites: number;               // total number of favorites
-    public is_favorited: boolean;           // true if the post is in the user's favorites
-    public comments: number;                // total number of comments
-    public rating: PostRating;              // rating in the one-letter lowercase format (s, q, e)
-    public uploader: number;                // uploader ID
-    public uploaderName: string;            // name of the uploader; probably not available
-    public approver: number;                // approver ID, or -1 if there isn't one
+  public user_score: number;              // user's current vote. might be undefined if no vote has been registered this session
+  public favorites: number;               // total number of favorites
+  public is_favorited: boolean;           // true if the post is in the user's favorites
+  public comments: number;                // total number of comments
+  public rating: PostRating;              // rating in the one-letter lowercase format (s, q, e)
+  public uploader: number;                // uploader ID
+  public uploaderName: string;            // name of the uploader; probably not available
+  public approver: number;                // approver ID, or -1 if there isn't one
 
-    public date: {
+  public date: {
         iso: string;                        // upload time, in `Fri Aug 21 2020 12:32:52 GMT-0700` format
         ago: string;                        // relative time, aka `5 minutes ago`
         obj: Date;                          // date object
     };
 
-    public tagString: string;               // string with space-separated tags. Makes outputting tags easier
-    public tags: {
+  public tagString: string;               // string with space-separated tags. Makes outputting tags easier
+  public tags: {
         all: Set<string>;
         artist: Set<string>;
         real_artist: Set<string>;           // same as artist, minus tags like `conditional_dnp` or `sound_warning`. See `Tag.isArtist()` for more info.
@@ -41,12 +41,12 @@ export default class Post {
         meta: Set<string>;
         lore: Set<string>;
     };
-    tagCategoriesKnown: boolean;            // false if the data is scraped from the page, and is thus missing tag category data
+  tagCategoriesKnown: boolean;            // false if the data is scraped from the page, and is thus missing tag category data
 
-    public sources: string[];
-    public description: string;
+  public sources: string[];
+  public description: string;
 
-    public file: {
+  public file: {
         ext: FileExtension;                 // file extension
         md5: string;
         original: string;                   // full-resolution image. `null` if the post is deleted
@@ -55,522 +55,523 @@ export default class Post {
         size: number;
     };
 
-    public img: {
+  public img: {
         width: number;
         height: number;
         ratio: number;                      // height divided by width. used to size thumbnails properly
     };
 
-    public has: {
+  public has: {
         file: boolean;                      // true if the post wasn't deleted, and is not on the anon blacklist
         children: boolean;                  // whether the post has any children
         parent: boolean;                    // whether the post has a parent
         sample: boolean;                    // whether the post has a sampled version
     };
 
-    public rel: {
+  public rel: {
         children: Set<number>;              // IDs of child posts
         parent: number;                     // ID of the parent post
     }
 
-    public meta: {
+  public meta: {
         duration: number;                   // in seconds - for webm only, null for everything else
         animated: boolean;                  // file is animated in any way (gif, webm, swf, etc)
         sound: boolean;                     // file has sound effects of any kind
         interactive: boolean;               // file has interactive elements (webm / swf)
     }
 
-    public warning: {
+  public warning: {
         sound: boolean;                     // file is marked with a sound warning
         epilepsy: boolean;                  // file is marked with epilepsy warning
     }
 
-    public override: {                         // overrides for the thumbnail dimensions
+  public override: {                         // overrides for the thumbnail dimensions
         width: number;
         height: number;
     }
 
-    private constructor(data: any) { // TODO Add type definitions
-        for (const [key, value] of Object.entries(data))
-            this[key] = value;
+  private constructor(data: any) { // TODO Add type definitions
+    for (const [key, value] of Object.entries(data))
+      this[key] = value;
+  }
+
+  public import(source: Post) {
+    const user_score = this.user_score,
+      uploaderName = this.uploaderName;
+
+    for (const [key, value] of Object.entries(source))
+      this[key] = value;
+
+    this.user_score = user_score;
+    this.uploaderName = uploaderName;
+  }
+
+
+  // Static constructors
+  public static fromThumbnail($element: JQuery<HTMLElement>): Post {
+    if ($element.hasClass("post-preview")) return this.fromThumbnailAB($element);
+    else if ($element.attr("id") == "image-container") return this.fromThumbnailC($element);
+    else if ($element.is("div") && $element.hasClass("post-thumbnail")) return this.fromThumbnailD($element);
+    throw new Error("Element does not contain recognized post data.");
+  }
+
+  public static tryFromThumbnail($element: JQuery<HTMLElement>): Post | null {
+    try {
+      return this.fromThumbnail($element);
+    } catch (error) {
+      return null;
+    }
+  }
+
+  private static fromThumbnailAB($element: JQuery<HTMLElement>): Post {
+
+    const data = $element.data() as PostDataTypeAB;
+    // TODO What if the element does not match the format?
+
+    const tagSet: Set<string> = new Set(data.tags.split(" "));
+
+    data.md5 ||= data.fileUrl?.match(/\/.{2}\/.{2}\/(.{32})\.([a-z]{3,4})(?:\?.+)?$/)?.[1];
+    if (!data.favCount) data.favCount = find($element, "faves");
+    data.comments = find($element, "comments");
+    data.date = findDate($element);
+
+    if (!data.width || !data.height) {
+      const img = $element.find("img");
+      data.width = img[0].naturalWidth;
+      data.height = img[0].naturalHeight;
     }
 
-    public import(source: Post) {
-        const user_score = this.user_score,
-            uploaderName = this.uploaderName;
-
-        for (const [key, value] of Object.entries(source))
-            this[key] = value;
-
-        this.user_score = user_score;
-        this.uploaderName = uploaderName;
+    function findDate($element: JQuery<HTMLElement>): Date {
+      const match = $element
+        ?.find("img")
+        .attr("title")
+        ?.match(/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} [-+]?\d{4}/)
+        ?.[0];
+      const date = new Date(match ?? 0);
+      return isNaN(date.getTime()) ? new Date(0) : date;
     }
 
-
-    // Static constructors
-    public static fromThumbnail($element: JQuery<HTMLElement>): Post {
-        if ($element.hasClass("post-preview")) return this.fromThumbnailAB($element);
-        else if ($element.attr("id") == "image-container") return this.fromThumbnailC($element);
-        else if ($element.is("div") && $element.hasClass("post-thumbnail")) return this.fromThumbnailD($element);
-        return null;
+    function find($element: JQuery<HTMLElement>, search: "faves" | "comments"): number {
+      const span = $element.find(`span.post-score-${search}`);
+      if (span.length == 0) return -1;
+      const num = parseInt(span.text().substring(1));
+      return isNaN(num) ? -1 : num;
     }
 
-    private static fromThumbnailAB($element: JQuery<HTMLElement>): Post {
+    return new Post({
+      source: "DOM",
 
-        const data = $element.data() as PostDataTypeAB;
-        // TODO What if the element does not match the format?
+      id: data.id || 0,
+      flags: PostFlag.fromString(data.flags || ""),
+      score: {
+        // This is obviously not accurate
+        // But it's good enough until the API data loads
+        up: data.score > 0 ? data.score : 0,
+        down: data.score < 0 ? data.score : 0,
+        total: data.score,
+      },
+      user_score: undefined,
+      favorites: data.favCount || 0,
+      is_favorited: data.isFavorited == true,
+      comments: data.comments,
+      rating: PostRating.fromValue(data.rating),
+      uploader: data.uploaderId || 0,
+      uploaderName: data.uploader || "Unknown",
+      approver: -1,
 
-        const tagSet: Set<string> = new Set(data.tags.split(" "));
+      date: {
+        iso: data.date.toISOString(),
+        ago: Util.Time.ago(data.date),
+        obj: data.date,
+      },
 
-        if (!data.md5) data.md5 = findMD5(data);
-        if (!data.favCount) data.favCount = find($element, "faves");
-        data.comments = find($element, "comments");
-        data.date = findDate($element);
+      tagString: data.tags,
+      tags: {
+        all: tagSet,
+        artist: new Set<string>(),
+        real_artist: new Set<string>(),
+        copyright: new Set<string>(),
+        species: new Set<string>(),
+        character: new Set<string>(),
+        general: new Set<string>(),
+        invalid: new Set<string>(),
+        meta: new Set<string>(),
+        lore: new Set<string>(),
+      },
+      tagCategoriesKnown: false,
 
-        if (!data.width || !data.height) {
-            const img = $element.find("img");
-            data.width = img[0].naturalWidth;
-            data.height = img[0].naturalHeight;
-        }
+      sources: [],
+      description: "",
 
-        function findMD5(data: PostDataTypeAB): string {
-            if (!data.fileUrl) return undefined;
-            const match = data.fileUrl.match(/\/.{2}\/.{2}\/(.{32})\.([a-z]{3,4})(?:\?.+)?$/);
-            if (match == null) return undefined;
-            data.md5 = match[1];
-        }
+      file: {
+        ext: data.fileExt,
+        md5: data.md5,
+        original: data.fileUrl,
+        sample: data.largeFileUrl,
+        preview: data.previewFileUrl,
+        size: 0,
+      },
 
-        function findDate($element: JQuery<HTMLElement>): Date {
-            const img = $element.find("img");
-            if (img.length == 0 || !img.attr("title")) return new Date(0);
+      img: {
+        width: data.width,
+        height: data.height,
+        ratio: data.height / data.width,
+      },
 
-            const match = img.attr("title").match(/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} [-+]?\d{4}/);
-            if (match == null) return new Date(0);
-            const date = new Date(match[0]);
-            return isNaN(date.getTime()) ? new Date(0) : date;
-        }
+      has: {
+        file: typeof data.fileUrl !== "undefined",
+        children: $element.hasClass("post-status-has-children"),
+        parent: $element.hasClass("post-status-has-parent"),
+        sample: data.fileUrl === data.largeFileUrl,
+      },
 
-        function find($element: JQuery<HTMLElement>, search: "faves" | "comments"): number {
-            const span = $element.find("span.post-score-" + search);
-            if (span.length == 0) return -1;
-            const num = parseInt(span.text().substring(1));
-            return isNaN(num) ? -1 : num;
-        }
+      rel: {
+        children: new Set(),
+        parent: null,
+      },
 
-        return new Post({
-            source: "DOM",
+      meta: {
+        duration: null,
+        animated: tagSet.has("animated") || data.fileExt == "webm" || data.fileExt == "gif" || data.fileExt == "swf",
+        sound: tagSet.has("sound"),
+        interactive: data.fileExt == "webm" || data.fileExt == "swf",
+      },
 
-            id: data.id || 0,
-            flags: PostFlag.fromString(data.flags || ""),
-            score: {
-                // This is obviously not accurate
-                // But it's good enough until the API data loads
-                up: data.score > 0 ? data.score : 0,
-                down: data.score < 0 ? data.score : 0,
-                total: data.score,
-            },
-            user_score: undefined,
-            favorites: data.favCount || 0,
-            is_favorited: data.isFavorited == true,
-            comments: data.comments,
-            rating: PostRating.fromValue(data.rating),
-            uploader: data.uploaderId || 0,
-            uploaderName: data.uploader || "Unknown",
-            approver: -1,
+      warning: {
+        sound: tagSet.has("sound_warning"),
+        epilepsy: tagSet.has("epilepsy_warning"),
+      },
+    });
+  }
 
-            date: {
-                iso: data.date.toISOString(),
-                ago: Util.Time.ago(data.date),
-                obj: data.date,
-            },
+  private static fromThumbnailC($element: JQuery<HTMLElement>): Post {
 
-            tagString: data.tags,
-            tags: {
-                all: tagSet,
-                artist: new Set<string>(),
-                real_artist: new Set<string>(),
-                copyright: new Set<string>(),
-                species: new Set<string>(),
-                character: new Set<string>(),
-                general: new Set<string>(),
-                invalid: new Set<string>(),
-                meta: new Set<string>(),
-                lore: new Set<string>(),
-            },
-            tagCategoriesKnown: false,
+    const data = $element.data() as PostDataTypeC;
+    // TODO What if the element does not match the format?
 
-            sources: [],
-            description: "",
+    return new Post({
+      source: "POST",
 
-            file: {
-                ext: data.fileExt,
-                md5: data.md5,
-                original: data.fileUrl,
-                sample: data.largeFileUrl,
-                preview: data.previewFileUrl,
-                size: 0,
-            },
+      id: data.post.id || 0,
+      flags: PostFlag.fromFlagSet(data.post.flags),
+      score: data.post.score,
+      user_score: undefined, // TODO Infer from voting block classes
+      favorites: data.post.fav_count,
+      is_favorited: data.post.is_favorited,
+      comments: data.post.comment_count,
+      rating: PostRating.fromValue(data.rating),
+      uploader: data.post.uploader_id,
+      uploaderName: data.uploader || "Unknown",
+      approver: -1,
 
-            img: {
-                width: data.width,
-                height: data.height,
-                ratio: data.height / data.width,
-            },
+      date: {
+        iso: data.post.created_at,
+        ago: Util.Time.ago(data.post.created_at),
+        obj: new Date(data.post.created_at),
+      },
 
-            has: {
-                file: typeof data.fileUrl !== "undefined",
-                children: $element.hasClass("post-status-has-children"),
-                parent: $element.hasClass("post-status-has-parent"),
-                sample: data.fileUrl === data.largeFileUrl,
-            },
+      tagString: data.post.tags.join(" "),
+      tags: {
+        all: new Set(data.post.tags),
+        artist: new Set<string>(),
+        real_artist: new Set<string>(),
+        copyright: new Set<string>(),
+        species: new Set<string>(),
+        character: new Set<string>(),
+        general: new Set<string>(),
+        invalid: new Set<string>(),
+        meta: new Set<string>(),
+        lore: new Set<string>(),
+      },
+      tagCategoriesKnown: false,
 
-            rel: {
-                children: new Set(),
-                parent: null,
-            },
+      sources: data.post.sources,
+      description: data.post.description,
 
-            meta: {
-                duration: null,
-                animated: tagSet.has("animated") || data.fileExt == "webm" || data.fileExt == "gif" || data.fileExt == "swf",
-                sound: tagSet.has("sound"),
-                interactive: data.fileExt == "webm" || data.fileExt == "swf",
-            },
+      file: {
+        ext: data.post.file.ext,
+        md5: data.post.file.md5,
+        original: data.post.file.url,
+        sample: data.post.sample.url,
+        preview: `https://static1.e6ai.net/data/preview/${data.post.file.md5.substring(0, 2)}/${data.post.file.md5.substring(2, 4)}/${data.post.file.md5}.jpg`,
+        size: data.post.file.size,
+      },
 
-            warning: {
-                sound: tagSet.has("sound_warning"),
-                epilepsy: tagSet.has("epilepsy_warning"),
-            },
-        });
+      img: {
+        width: data.post.file.width,
+        height: data.post.file.height,
+        ratio: data.post.file.height / data.post.file.width,
+      },
+
+      has: {
+        file: typeof data.post.file.url !== "undefined",
+        children: data.post.relationships.has_active_children,
+        parent: data.post.relationships.parent_id !== null,
+        sample: data.post.file.url !== data.post.sample.url,
+      },
+
+      rel: {
+        children: new Set(data.post.relationships.children),
+        parent: data.post.relationships.parent_id,
+      },
+
+      meta: {
+        duration: null,
+        animated: data.post.tags.includes("animated") || data.post.file.ext == "webm" || data.post.file.ext == "gif" || data.post.file.ext == "swf",
+        sound: data.post.tags.includes("sound"),
+        interactive: data.post.file.ext == "webm" || data.post.file.ext == "swf",
+      },
+
+      warning: {
+        sound: data.post.tags.includes("sound_warning"),
+        epilepsy: data.post.tags.includes("epilepsy_warning"),
+      },
+    });
+  }
+
+  private static fromThumbnailD($element: JQuery<HTMLElement>): Post {
+
+    const data = $element.data() as PostDataTypeD;
+    // TODO What if the element does not match the format?
+
+    const tagSet: Set<string> = new Set(data.tags.split(" "));
+    const imageURL = $element.find("img").attr("src");
+
+    let urls: any;
+    if (data.md5) {
+      const options = {
+        md5: data.md5,
+        extension: data.fileExt,
+        width: data.width,
+        height: data.height,
+      };
+      urls = {
+        original: this.rebuildURL("original", options),
+        sample: data.status == "deleted" ? imageURL : this.rebuildURL("sample", options),
+        preview: imageURL,
+      }
+    } else {
+      console.log(imageURL);
+      urls = {
+        original: "/images/deleted-preview.png",
+        sample: imageURL,
+        preview: imageURL,
+      };
     }
 
-    private static fromThumbnailC($element: JQuery<HTMLElement>): Post {
+    return new Post({
+      source: "DOM",
 
-        const data = $element.data() as PostDataTypeC;
-        // TODO What if the element does not match the format?
+      id: data.id || 0,
+      flags: PostFlag.fromString(data.flags || ""),
+      score: {
+        // This is obviously not accurate
+        // But it's good enough until the API data loads
+        up: data.score > 0 ? data.score : 0,
+        down: data.score < 0 ? data.score : 0,
+        total: data.score,
+      },
+      user_score: undefined,
+      favorites: 0,
+      is_favorited: false,
+      comments: 0,
+      rating: PostRating.fromValue(data.rating),
+      uploader: data.uploaderId || 0,
+      uploaderName: data.uploader || "Unknown",
+      approver: -1,
 
-        return new Post({
-            source: "POST",
+      date: {
+        iso: data.createdAt,
+        ago: Util.Time.ago(data.createdAt),
+        obj: new Date(data.createdAt),
+      },
 
-            id: data.post.id || 0,
-            flags: PostFlag.fromFlagSet(data.post.flags),
-            score: data.post.score,
-            user_score: undefined, // TODO Infer from voting block classes
-            favorites: data.post.fav_count,
-            is_favorited: data.post.is_favorited,
-            comments: data.post.comment_count,
-            rating: PostRating.fromValue(data.rating),
-            uploader: data.post.uploader_id,
-            uploaderName: data.uploader || "Unknown",
-            approver: -1,
+      tagString: data.tags,
+      tags: {
+        all: tagSet,
+        artist: new Set<string>(),
+        real_artist: new Set<string>(),
+        copyright: new Set<string>(),
+        species: new Set<string>(),
+        character: new Set<string>(),
+        general: new Set<string>(),
+        invalid: new Set<string>(),
+        meta: new Set<string>(),
+        lore: new Set<string>(),
+      },
+      tagCategoriesKnown: false,
 
-            date: {
-                iso: data.post.created_at,
-                ago: Util.Time.ago(data.post.created_at),
-                obj: new Date(data.post.created_at),
-            },
+      sources: [],
+      description: "",
 
-            tagString: data.post.tags.join(" "),
-            tags: {
-                all: new Set(data.post.tags),
-                artist: new Set<string>(),
-                real_artist: new Set<string>(),
-                copyright: new Set<string>(),
-                species: new Set<string>(),
-                character: new Set<string>(),
-                general: new Set<string>(),
-                invalid: new Set<string>(),
-                meta: new Set<string>(),
-                lore: new Set<string>(),
-            },
-            tagCategoriesKnown: false,
+      file: {
+        ext: data.fileExt,
+        md5: data.md5,
+        original: urls.original,
+        sample: urls.sample,
+        preview: urls.preview,
+        size: 0,
+      },
 
-            sources: data.post.sources,
-            description: data.post.description,
+      img: {
+        width: data.width,
+        height: data.height,
+        ratio: data.height / data.width,
+      },
 
-            file: {
-                ext: data.post.file.ext,
-                md5: data.post.file.md5,
-                original: data.post.file.url,
-                sample: data.post.sample.url,
-                preview: `https://static1.e6ai.net/data/preview/${data.post.file.md5.substring(0, 2)}/${data.post.file.md5.substring(2, 4)}/${data.post.file.md5}.jpg`,
-                size: data.post.file.size,
-            },
+      has: {
+        file: typeof urls.original !== "undefined",
+        children: $element.hasClass("post-status-has-children"),
+        parent: $element.hasClass("post-status-has-parent"),
+        sample: urls.original === urls.sample,
+      },
 
-            img: {
-                width: data.post.file.width,
-                height: data.post.file.height,
-                ratio: data.post.file.height / data.post.file.width,
-            },
+      rel: {
+        children: new Set(),
+        parent: null,
+      },
 
-            has: {
-                file: typeof data.post.file.url !== "undefined",
-                children: data.post.relationships.has_active_children,
-                parent: data.post.relationships.parent_id !== null,
-                sample: data.post.file.url !== data.post.sample.url,
-            },
+      meta: {
+        duration: null,
+        animated: tagSet.has("animated") || data.fileExt == "webm" || data.fileExt == "gif" || data.fileExt == "swf",
+        sound: tagSet.has("sound"),
+        interactive: data.fileExt == "webm" || data.fileExt == "swf",
+      },
 
-            rel: {
-                children: new Set(data.post.relationships.children),
-                parent: data.post.relationships.parent_id,
-            },
+      warning: {
+        sound: tagSet.has("sound_warning"),
+        epilepsy: tagSet.has("epilepsy_warning"),
+      },
 
-            meta: {
-                duration: null,
-                animated: data.post.tags.includes("animated") || data.post.file.ext == "webm" || data.post.file.ext == "gif" || data.post.file.ext == "swf",
-                sound: data.post.tags.includes("sound"),
-                interactive: data.post.file.ext == "webm" || data.post.file.ext == "swf",
-            },
+      override: {
+        width: data.previewWidth,
+        height: data.previewHeight,
+      }
+    });
+  }
 
-            warning: {
-                sound: data.post.tags.includes("sound_warning"),
-                epilepsy: data.post.tags.includes("epilepsy_warning"),
-            },
-        });
-    }
+  public static fromAPI(data: APIPost): Post {
+    const tagSet = new Set([
+      ...data.tags.artist,
+      ...data.tags.artist,
+      ...data.tags.copyright,
+      ...data.tags.species,
+      ...data.tags.character,
+      ...data.tags.general,
+      ...data.tags.invalid,
+      ...data.tags.meta,
+      ...data.tags.lore,
+    ]);
+    return new Post({
+      source: "API",
 
-    private static fromThumbnailD($element: JQuery<HTMLElement>): Post {
+      id: data.id,
+      flags: new Set(PostFlag.get(data)),
+      score: data.score,
+      user_score: undefined,
+      favorites: data.fav_count,
+      is_favorited: data.is_favorited,
+      comments: data.comment_count,
+      rating: data.rating,
+      uploader: data.uploader_id,
+      uploaderName: "Unknown",
+      approver: data.approver_id,
 
-        const data = $element.data() as PostDataTypeD;
-        // TODO What if the element does not match the format?
+      date: {
+        iso: data.created_at,
+        ago: Util.Time.ago(data.created_at),
+        obj: new Date(data.created_at),
+      },
 
-        const tagSet: Set<string> = new Set(data.tags.split(" "));
-        const imageURL = $element.find("img").attr("src");
+      tagString: Array.from(tagSet).join(" "),
+      tags: {
+        all: tagSet,
+        artist: new Set(data.tags.artist),
+        real_artist: new Set(data.tags.artist.filter(tag => Tag.isArtist(tag))),
+        copyright: new Set(data.tags.copyright),
+        species: new Set(data.tags.species),
+        character: new Set(data.tags.character),
+        general: new Set(data.tags.general),
+        invalid: new Set(data.tags.invalid),
+        meta: new Set(data.tags.meta),
+        lore: new Set(data.tags.lore),
+      },
+      tagCategoriesKnown: true,
 
-        let urls: any;
-        if (data.md5) {
-            const options = {
-                md5: data.md5,
-                extension: data.fileExt,
-                width: data.width,
-                height: data.height,
-            };
-            urls = {
-                original: this.rebuildURL("original", options),
-                sample: data.status == "deleted" ? imageURL : this.rebuildURL("sample", options),
-                preview: imageURL,
-            }
-        } else {
-            console.log(imageURL);
-            urls = {
-                original: "/images/deleted-preview.png",
-                sample: imageURL,
-                preview: imageURL,
-            };
-        }
+      sources: data.sources,
+      description: data.description,
 
-        return new Post({
-            source: "DOM",
+      file: {
+        ext: FileExtension.fromString(data.file.ext),
+        md5: data.file.md5,
+        original: data.file.url,
+        sample: data.sample.url,
+        preview: data.preview.url,
+        size: data.file.size,
+      },
 
-            id: data.id || 0,
-            flags: PostFlag.fromString(data.flags || ""),
-            score: {
-                // This is obviously not accurate
-                // But it's good enough until the API data loads
-                up: data.score > 0 ? data.score : 0,
-                down: data.score < 0 ? data.score : 0,
-                total: data.score,
-            },
-            user_score: undefined,
-            favorites: 0,
-            is_favorited: false,
-            comments: 0,
-            rating: PostRating.fromValue(data.rating),
-            uploader: data.uploaderId || 0,
-            uploaderName: data.uploader || "Unknown",
-            approver: -1,
+      img: {
+        width: data.file.width,
+        height: data.file.height,
+        ratio: data.file.height / data.file.width,
+      },
 
-            date: {
-                iso: data.createdAt,
-                ago: Util.Time.ago(data.createdAt),
-                obj: new Date(data.createdAt),
-            },
+      has: {
+        file: typeof data.file.url == "string",
+        children: data.relationships.has_active_children,
+        parent: data.relationships.parent_id !== null,
+        sample: data.file.url !== data.sample.url,
+      },
 
-            tagString: data.tags,
-            tags: {
-                all: tagSet,
-                artist: new Set<string>(),
-                real_artist: new Set<string>(),
-                copyright: new Set<string>(),
-                species: new Set<string>(),
-                character: new Set<string>(),
-                general: new Set<string>(),
-                invalid: new Set<string>(),
-                meta: new Set<string>(),
-                lore: new Set<string>(),
-            },
-            tagCategoriesKnown: false,
+      rel: {
+        children: new Set(data.relationships.children),
+        parent: data.relationships.parent_id,
+      },
 
-            sources: [],
-            description: "",
+      meta: {
+        duration: data.duration,
+        animated: tagSet.has("animated") || data.file.ext == FileExtension.WEBM || data.file.ext == FileExtension.GIF || data.file.ext == FileExtension.SWF,
+        sound: tagSet.has("sound"),
+        interactive: data.file.ext == FileExtension.WEBM || data.file.ext == FileExtension.SWF,
+      },
 
-            file: {
-                ext: data.fileExt,
-                md5: data.md5,
-                original: urls.original,
-                sample: urls.sample,
-                preview: urls.preview,
-                size: 0,
-            },
+      warning: {
+        sound: tagSet.has("sound_warning"),
+        epilepsy: tagSet.has("epilepsy_warning"),
+      },
+    });
+  }
 
-            img: {
-                width: data.width,
-                height: data.height,
-                ratio: data.height / data.width,
-            },
-
-            has: {
-                file: typeof urls.original !== "undefined",
-                children: $element.hasClass("post-status-has-children"),
-                parent: $element.hasClass("post-status-has-parent"),
-                sample: urls.original === urls.sample,
-            },
-
-            rel: {
-                children: new Set(),
-                parent: null,
-            },
-
-            meta: {
-                duration: null,
-                animated: tagSet.has("animated") || data.fileExt == "webm" || data.fileExt == "gif" || data.fileExt == "swf",
-                sound: tagSet.has("sound"),
-                interactive: data.fileExt == "webm" || data.fileExt == "swf",
-            },
-
-            warning: {
-                sound: tagSet.has("sound_warning"),
-                epilepsy: tagSet.has("epilepsy_warning"),
-            },
-
-            override: {
-                width: data.previewWidth,
-                height: data.previewHeight,
-            }
-        });
-    }
-
-    public static fromAPI(data: APIPost): Post {
-        const tagSet = new Set([
-            ...data.tags.artist,
-            ...data.tags.artist,
-            ...data.tags.copyright,
-            ...data.tags.species,
-            ...data.tags.character,
-            ...data.tags.general,
-            ...data.tags.invalid,
-            ...data.tags.meta,
-            ...data.tags.lore,
-        ]);
-        return new Post({
-            source: "API",
-
-            id: data.id,
-            flags: new Set(PostFlag.get(data)),
-            score: data.score,
-            user_score: undefined,
-            favorites: data.fav_count,
-            is_favorited: data.is_favorited,
-            comments: data.comment_count,
-            rating: data.rating,
-            uploader: data.uploader_id,
-            uploaderName: "Unknown",
-            approver: data.approver_id,
-
-            date: {
-                iso: data.created_at,
-                ago: Util.Time.ago(data.created_at),
-                obj: new Date(data.created_at),
-            },
-
-            tagString: Array.from(tagSet).join(" "),
-            tags: {
-                all: tagSet,
-                artist: new Set(data.tags.artist),
-                real_artist: new Set(data.tags.artist.filter(tag => Tag.isArtist(tag))),
-                copyright: new Set(data.tags.copyright),
-                species: new Set(data.tags.species),
-                character: new Set(data.tags.character),
-                general: new Set(data.tags.general),
-                invalid: new Set(data.tags.invalid),
-                meta: new Set(data.tags.meta),
-                lore: new Set(data.tags.lore),
-            },
-            tagCategoriesKnown: true,
-
-            sources: data.sources,
-            description: data.description,
-
-            file: {
-                ext: FileExtension.fromString(data.file.ext),
-                md5: data.file.md5,
-                original: data.file.url,
-                sample: data.sample.url,
-                preview: data.preview.url,
-                size: data.file.size,
-            },
-
-            img: {
-                width: data.file.width,
-                height: data.file.height,
-                ratio: data.file.height / data.file.width,
-            },
-
-            has: {
-                file: typeof data.file.url == "string",
-                children: data.relationships.has_active_children,
-                parent: data.relationships.parent_id !== null,
-                sample: data.file.url !== data.sample.url,
-            },
-
-            rel: {
-                children: new Set(data.relationships.children),
-                parent: data.relationships.parent_id,
-            },
-
-            meta: {
-                duration: data.duration,
-                animated: tagSet.has("animated") || data.file.ext == FileExtension.WEBM || data.file.ext == FileExtension.GIF || data.file.ext == FileExtension.SWF,
-                sound: tagSet.has("sound"),
-                interactive: data.file.ext == FileExtension.WEBM || data.file.ext == FileExtension.SWF,
-            },
-
-            warning: {
-                sound: tagSet.has("sound_warning"),
-                epilepsy: tagSet.has("epilepsy_warning"),
-            },
-        });
-    }
-
-    private static rebuildURL(
-        type: "preview" | "sample" | "original" = "preview",
-        options: {
+  private static rebuildURL(
+    type: "preview" | "sample" | "original" = "preview",
+    options: {
             md5: string,
             extension: string,
             width: number,
             height: number,
         }): string {
-        if (!options) return null;
+    if (!options) return null;
 
-        const parts = [
-            options.md5.substring(0, 2),
-            options.md5.substring(2, 4),
-            options.md5,
-            options.extension,
-        ]
+    const parts = [
+      options.md5.substring(0, 2),
+      options.md5.substring(2, 4),
+      options.md5,
+      options.extension,
+    ]
 
-        switch (type) {
-            case "original":
-                return `https://static1.e6ai.net/data/${parts[0]}/${parts[1]}/${parts[2]}.${parts[3]}`
-            case "sample":
-                return ((options.width < 850 || options.height < 850 || options.extension == "gif")
-                    ? `https://static1.e6ai.net/data/${parts[0]}/${parts[1]}/${parts[2]}.${parts[3]}`
-                    : `https://static1.e6ai.net/data/sample/${parts[0]}/${parts[1]}/${parts[2]}.jpg`);
-            case "preview":
-            default: {
-                return `https://static1.e6ai.net/data/preview/${parts[0]}/${parts[1]}/${parts[2]}.jpg`;
-            }
-        }
+    switch (type) {
+      case "original":
+        return `https://static1.e6ai.net/data/${parts[0]}/${parts[1]}/${parts[2]}.${parts[3]}`
+      case "sample":
+        return ((options.width < 850 || options.height < 850 || options.extension == "gif")
+          ? `https://static1.e6ai.net/data/${parts[0]}/${parts[1]}/${parts[2]}.${parts[3]}`
+          : `https://static1.e6ai.net/data/sample/${parts[0]}/${parts[1]}/${parts[2]}.jpg`);
+      case "preview":
+      default: {
+        return `https://static1.e6ai.net/data/preview/${parts[0]}/${parts[1]}/${parts[2]}.jpg`;
+      }
     }
+  }
 
 }
 
@@ -586,15 +587,15 @@ export enum FileExtension {
 
 export namespace FileExtension {
     export function fromString(input: string): FileExtension {
-        switch (input) {
-            case "jpeg":
-            case "jpg": return FileExtension.JPG;
-            case "png": return FileExtension.PNG;
-            case "gif": return FileExtension.GIF;
-            case "swf": return FileExtension.SWF;
-            case "webm": return FileExtension.WEBM;
-        }
-        return null;
+      switch (input) {
+        case "jpeg":
+        case "jpg": return FileExtension.JPG;
+        case "png": return FileExtension.PNG;
+        case "gif": return FileExtension.GIF;
+        case "swf": return FileExtension.SWF;
+        case "webm": return FileExtension.WEBM;
+      }
+      return null;
     }
 }
 
@@ -608,34 +609,34 @@ export enum PostRating {
 
 export namespace PostRating {
     const ratingRef = {
-        "s": PostRating.Safe,
-        "safe": PostRating.Safe,
-        "q": PostRating.Questionable,
-        "questionable": PostRating.Questionable,
-        "e": PostRating.Explicit,
-        "explicit": PostRating.Explicit,
+      "s": PostRating.Safe,
+      "safe": PostRating.Safe,
+      "q": PostRating.Questionable,
+      "questionable": PostRating.Questionable,
+      "e": PostRating.Explicit,
+      "explicit": PostRating.Explicit,
     };
 
     export function fromValue(value: string): PostRating {
-        return ratingRef[value.toLowerCase()];
+      return ratingRef[value.toLowerCase()];
     }
 
     export function toString(postRating: PostRating): string {
-        for (const key of Object.keys(PostRating)) {
-            if (PostRating[key] === postRating) {
-                return key;
-            }
+      for (const key of Object.keys(PostRating)) {
+        if (PostRating[key] === postRating) {
+          return key;
         }
-        return undefined;
+      }
+      return undefined;
     }
 
     export function toFullString(postRating: PostRating): string {
-        switch (postRating.toLowerCase()) {
-            case "s": return "safe";
-            case "q": return "questionable";
-            case "e": return "explicit";
-        }
-        return null;
+      switch (postRating.toLowerCase()) {
+        case "s": return "safe";
+        case "q": return "questionable";
+        case "e": return "explicit";
+      }
+      return null;
     }
 }
 
@@ -661,31 +662,31 @@ export enum PostFlag {
 export namespace PostFlag {
 
     export function get(post: APIPost): PostFlag[] {
-        return fromFlagSet(post.flags);
+      return fromFlagSet(post.flags);
     }
 
     export function getString(post: APIPost): string {
-        return PostFlag.get(post).join(" ");
+      return PostFlag.get(post).join(" ");
     }
 
     export function fromFlagSet(flagSet: any): PostFlag[] {
-        const flags: PostFlag[] = [];
-        if (flagSet.deleted) flags.push(PostFlag.Deleted);
-        if (flagSet.flagged) flags.push(PostFlag.Flagged);
-        if (flagSet.pending) flags.push(PostFlag.Pending);
-        if (flagSet.note_locked) flags.push(PostFlag.NoteLocked);
-        if (flagSet.status_locked) flags.push(PostFlag.StatusLocked);
-        if (flagSet.rating_locked) flags.push(PostFlag.RatingLocked);
-        return flags;
+      const flags: PostFlag[] = [];
+      if (flagSet.deleted) flags.push(PostFlag.Deleted);
+      if (flagSet.flagged) flags.push(PostFlag.Flagged);
+      if (flagSet.pending) flags.push(PostFlag.Pending);
+      if (flagSet.note_locked) flags.push(PostFlag.NoteLocked);
+      if (flagSet.status_locked) flags.push(PostFlag.StatusLocked);
+      if (flagSet.rating_locked) flags.push(PostFlag.RatingLocked);
+      return flags;
     }
 
     export function fromString(input: string): Set<PostFlag> {
-        const parts = new Set(input.split(" "));
-        const flags: Set<PostFlag> = new Set();
-        if (parts.has("deleted")) flags.add(PostFlag.Deleted);
-        if (parts.has("flagged")) flags.add(PostFlag.Flagged);
-        if (parts.has("pending")) flags.add(PostFlag.Pending);
-        return flags;
+      const parts = new Set(input.split(" "));
+      const flags: Set<PostFlag> = new Set();
+      if (parts.has("deleted")) flags.add(PostFlag.Deleted);
+      if (parts.has("flagged")) flags.add(PostFlag.Flagged);
+      if (parts.has("pending")) flags.add(PostFlag.Pending);
+      return flags;
     }
 
 }

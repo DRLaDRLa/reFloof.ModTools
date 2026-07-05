@@ -4,12 +4,26 @@ import { TemplateBuilder, TemplateData } from "../models/structure/TemplateBuild
 import { html } from "../utilities/HtmlTemplate";
 import Component from "./Component";
 
-interface StoredButton extends TemplateData {
+// #region Type Stuff
+interface AtypicalButton extends TemplateData {
 	/** Legacy field kept for backward compatibility with stored data. */
-	name?: string;
-	/** Legacy field kept for backward compatibility with stored data. */
-	text?: string;
+	text: string;
 }
+
+interface NamedButton extends TemplateData {
+	/** Legacy field kept for backward compatibility with stored data. */
+	name: string;
+}
+
+interface StoredButton extends AtypicalButton, NamedButton {}
+
+type Settings = {
+  enabled: boolean;
+  buttons: (AtypicalButton | NamedButton | StoredButton | TemplateData)[];
+  insertMode: "replace" | "insert";
+  greeting: string;
+};
+// #endregion Type Stuff
 
 const DEFAULT_GREETING = "Hi %reporterName%,\n\n";
 
@@ -18,89 +32,89 @@ const FLAG_TEXT_END = ", but for future reference, you can flag posts by selecti
 
 export default class TicketReasons extends Component {
 
-	private builder?: TemplateBuilder;
-	/** The name of the user who filed the ticket. Used for `%reporterName%` substitution. */
-	private reporterName = "";
-	private isEnabled: boolean;
+  private builder?: TemplateBuilder;
+  /** The name of the user who filed the ticket. Used for `%reporterName%` substitution. */
+  private reporterName = "";
+  private isEnabled: boolean;
 
-	public constructor() {
-		super({
-			constraint: PageDefinition.tickets.view,
-			waitForDOM: "textarea[name='ticket[response]']",
-			dependencies: ["TicketData"],
-		});
-		this.isEnabled = User.isModerator || User.isAdmin;
-	}
+  public constructor() {
+    super({
+      constraint: PageDefinition.tickets.view,
+      waitForDOM: "textarea[name='ticket[response]']",
+      dependencies: ["TicketData"],
+    });
+    this.isEnabled = User.isModerator || User.isAdmin;
+  }
 
-	public static get defaultTemplates(): TemplateData[] {
-		return [
-			{ title: "Handled", body: "This ticket has been handled, thank you!" },
-			{ title: "Reviewed", body: "This ticket has been reviewed, thank you!" },
-			{ title: "NAT", body: "Thank you for the heads-up! We've reviewed the ticket and completed our investigation into the matter; however, we've decided it does not warrant action at this time." },
-			{ title: "Reply", body: "Looks like you accidentally pressed report instead of reply. No worries, it happens!" },
-			{ title: "Already (Rec)", body: "Thank you for your report, but this user has already received a record for this matter." },
-			{ title: "Already (Ban)", body: "Thank you for your report, but this user is already banned." },
-			{ title: "Blacklist", body: 'Thank you for your report, but this post\'s content does not violate our "uploading guidelines":[/help/uploading_guidelines].\nIf you find the contents of the post objectionable, we\'d ask you to add the relevant tags (or the post\'s id itself) to your "blacklist":[/help/blacklist].' },
-			{ title: "Takedown", body: 'Thank you for your report, but this matter needs to be handled via a takedown request.\nArtists/directors may request a takedown "here":/static/takedown.\nWe do not accept third party takedowns.' },
-			{ title: "DMed", body: "Thank you for your report, we've discussed the matter with them."},
-		];
-	}
+  public static get defaultTemplates(): TemplateData[] {
+    return [
+      { title: "Handled", body: "This ticket has been handled, thank you!" },
+      { title: "Reviewed", body: "This ticket has been reviewed, thank you!" },
+      { title: "NAT", body: "Thank you for the heads-up! We've reviewed the ticket and completed our investigation into the matter; however, we've decided it does not warrant action at this time." },
+      { title: "Reply", body: "Looks like you accidentally pressed report instead of reply. No worries, it happens!" },
+      { title: "Already (Rec)", body: "Thank you for your report, but this user has already received a record for this matter." },
+      { title: "Already (Ban)", body: "Thank you for your report, but this user is already banned." },
+      { title: "Blacklist", body: 'Thank you for your report, but this post\'s content does not violate our "uploading guidelines":[/help/uploading_guidelines].\nIf you find the contents of the post objectionable, we\'d ask you to add the relevant tags (or the post\'s id itself) to your "blacklist":[/help/blacklist].' },
+      { title: "Takedown", body: 'Thank you for your report, but this matter needs to be handled via a takedown request.\nArtists/directors may request a takedown "here":/static/takedown.\nWe do not accept third party takedowns.' },
+      { title: "DMed", body: "Thank you for your report, we've discussed the matter with them."},
+    ];
+  }
 
-	public Settings: { enabled: boolean; buttons: StoredButton[]; insertMode: "replace" | "insert"; greeting: string } = {
-		enabled: true,
-		buttons: TicketReasons.defaultTemplates,
+  public Settings: Settings = {
+    enabled: true,
+    buttons: TicketReasons.defaultTemplates,
     insertMode: "replace",
-		greeting: DEFAULT_GREETING,
-	};
+    greeting: DEFAULT_GREETING,
+  };
 
   private readonly settingsButtonLabel = "Ticket Template Settings";
-	protected create(): Promise<void> {
-		if (!this.isEnabled) return Promise.resolve();
+  protected create(): Promise<void> {
+    if (!this.isEnabled) return Promise.resolve();
     this.initSettingsMenu();
 
-		const target = document.querySelector<HTMLTextAreaElement>("textarea[name='ticket[response]']");
-		if (!target) return Promise.resolve();
+    const target = document.querySelector<HTMLTextAreaElement>("textarea[name='ticket[response]']");
+    if (!target) return Promise.resolve();
 
-		// Lift the reporter name out of the ticket info table for `%reporterName%` substitution.
-		const rows = Array.from(document.querySelectorAll<HTMLElement>("#c-tickets .section tr"));
-		const req = rows.find((e) => e.innerText.includes("Requested by"));
-		this.reporterName = req?.querySelector<HTMLElement>("td a")?.innerText ?? "";
+    // Lift the reporter name out of the ticket info table for `%reporterName%` substitution.
+    const rows = Array.from(document.querySelectorAll<HTMLElement>("#c-tickets .section tr"));
+    const req = rows.find((e) => e.innerText.includes("Requested by"));
+    this.reporterName = req?.querySelector<HTMLElement>("td a")?.innerText ?? "";
 
     const scopedInsertMode = () => this.Settings.insertMode;
-		this.builder = new TemplateBuilder({
-			targetField: target,
-			label: "Ticket reply templates",
-			get insertMode() { return scopedInsertMode(); },
-			defaults: TicketReasons.defaultTemplates,
-			getTemplates: () => this.Settings.buttons.map((b) => ({
-				title: b.title ?? b.name ?? "",
-				body: b.body ?? b.text ?? "",
-			})),
-			setTemplates: (next) => { this.Settings.buttons = next; },
-			transform: (template) => {
-				const greeting = this.Settings.greeting;
-				const text = greeting.includes("%body%")
-					? greeting.replace("%body%", template.body)
-					: `${greeting}${template.body}`;
-				return text.replace(/%reporterName%/g, this.reporterName);
-			},
-			pinnedChip: {
-				title: "Greeting",
-				getBody: () => this.Settings.greeting,
-				setBody: (body) => { this.Settings.greeting = body; },
-				defaultBody: DEFAULT_GREETING,
-			},
-		});
-		this.builder.mount();
-		return Promise.resolve();
-	}
+    this.builder = new TemplateBuilder({
+      targetField: target,
+      label: "Ticket reply templates",
+      get insertMode() { return scopedInsertMode(); },
+      defaults: TicketReasons.defaultTemplates,
+      getTemplates: () => this.Settings.buttons.map((b) => ({
+        title: b.title ?? b.name ?? "",
+        body: b.body ?? b.text ?? "",
+      } as TemplateData)),
+      setTemplates: (next) => { this.Settings.buttons = next; },
+      transform: (template) => {
+        const greeting = this.Settings.greeting;
+        const text = greeting.includes("%body%")
+          ? greeting.replace("%body%", template.body)
+          : `${greeting}${template.body}`;
+        return text.replace(/%reporterName%/g, this.reporterName);
+      },
+      pinnedChip: {
+        title: "Greeting",
+        getBody: () => this.Settings.greeting,
+        setBody: (body) => { this.Settings.greeting = body; },
+        defaultBody: DEFAULT_GREETING,
+      },
+    });
+    this.builder.mount();
+    return Promise.resolve();
+  }
 
-	protected async destroy(): Promise<void> {
-		this.builder?.destroy();
-	}
+  protected async destroy(): Promise<void> {
+    this.builder?.destroy();
+  }
 
   private initSettingsMenu() {
-    this._settingsMenuDialogParameters = {
+    this.settingsMenuDialogParameters = {
       elements: [
         $(html`<fieldset title="How should the button's text be added to the text box?">
             <legend>Text insertion mode</legend>
