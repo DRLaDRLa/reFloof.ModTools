@@ -11,12 +11,14 @@ export default class DMailToStaffNote extends Component {
   public static readonly TICKET_MATCHER = /^"Your ticket":\/tickets\/([0-9]+) has been updated by /;
   private readonly templateVariables = new Map<string|RegExp, string|((key: string, ...args: any[]) => string)>([
     ["dmailId", () => this.dmailJson["id"].toString()],
+    ["dmailQuery", () => new URL(
+      document.querySelector<HTMLAnchorElement>("a#share-link")?.href ?? location.href,
+    ).search],
     ["title", () => this.dmailJson["title"].toString()],
     ["ticketId", (v) => {
       if (!this.dmailJson || !(this.dmailJson["body"])) return v;
       const b: string = this.dmailJson["body"].toString();
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      return DMailToStaffNote.TICKET_MATCHER.test(b) ? DMailToStaffNote.TICKET_MATCHER.exec(b)![1].toString() : v;
+      return DMailToStaffNote.TICKET_MATCHER.exec(b)?.[1]?.toString() ?? v;
     }],
     ["sender", () => this.dmailJson["from_name"].toString()],
     ["recipient", () => this.dmailJson["to_name"].toString()],
@@ -38,7 +40,7 @@ export default class DMailToStaffNote extends Component {
 
   public Settings = {
     enabled: true,
-    header: '"DMail":[/dmails/%dmailId%] sent regarding ticket #%ticketId%\n[section=$title]',
+    header: '"DMail":[/dmails/%dmailId%%dmailQuery%] sent regarding ticket #%ticketId%\n[section=$title]',
     footer: "[/section]\n",
   };
 
@@ -46,10 +48,10 @@ export default class DMailToStaffNote extends Component {
     DialogForm.getRequestedInput(
       [
         $('<label for="setting-header">Default Staff Note Header</label>'),
-        $(`<textarea id="setting-header" name="setting-header"></textarea>`).text(this.Settings.header),
+        $(`<textarea id="setting-header" name="setting-header" placeholder="Valid template parameters: ${Array.from(this.templateVariables.keys()).join(", ")}"></textarea>`).text(this.Settings.header),
         $('<br />'),
         $('<label for="setting-footer">Default Staff Note Footer</label>'),
-        $(`<textarea id="setting-footer" name="setting-footer"></textarea>`).text(this.Settings.footer),
+        $(`<textarea id="setting-footer" name="setting-footer" placeholder="Valid template parameters: ${Array.from(this.templateVariables.keys()).join(", ")}"></textarea>`).text(this.Settings.footer),
       ],
       "Settings",
       (e: FormData) => {
