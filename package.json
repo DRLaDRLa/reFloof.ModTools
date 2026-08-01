@@ -1,9 +1,9 @@
 {
     "name": "mod6ai",
-    "displayName": "RE6AI Mod Tools (fork of RE621 Mod Tools)",
+    "displayName": "RE6AI Mod Tools",
     "namespace": "mod6ai.e6ai.net",
-    "version": "6.4.3",
-    "description": "Moderation toolkit for e6ai.net",
+    "version": "6.6.1",
+    "description": "Moderation toolkit for e6ai.net, a fork of RE621 Mod Tools",
     "author": "bitWolfy",
     "contributors": [
         "bitWolfy <@bitWolfy#7932>",
@@ -14,6 +14,12 @@
     "homepage": "https://github.com/DRLaDRLa/re6ai.ModTools",
     "funding": "https://ko-fi.com/bitwolfy",
     "repository": "github:DRLaDRLa/re6ai.ModTools",
+    "config": {
+        "iconUri": "https://cdn.jsdelivr.net/gh/re621/re6ai@master/assets/icon64.png",
+        "icon64Uri": "https://cdn.jsdelivr.net/gh/re621/re6ai@master/assets/icon64.png",
+        "domains": ["e6ai.net"],
+        "staticDomains": ["static1.e6ai.net"]
+    },
     "scripts": {
         "push": "npm version patch && git push --follow-tags",
         "push-minor": "npm version minor && git push --follow-tags",

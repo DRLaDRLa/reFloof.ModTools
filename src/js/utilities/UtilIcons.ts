@@ -1,5 +1,5 @@
 /**
- * Lucide icons used by RE6AI Mod Tools.
+ * Lucide icons used by this project.
  * Lucide is licensed under ISC. See https://lucide.dev
  */
 

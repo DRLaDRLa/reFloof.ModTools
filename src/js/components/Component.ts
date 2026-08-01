@@ -2,6 +2,7 @@ import REMT from "../../REMT";
 import XM from "../models/api/XM";
 import KeybindManager, { Keybind, ResponseFunction } from "../models/data/Keybinds";
 import Page from "../models/data/Page";
+import Script from "../models/data/Script";
 import Debug from "../models/Debug";
 import { JsonStrictObject } from "../models/JsonTypes";
 import { DialogConfig } from "../models/structure/DialogForm";
@@ -285,7 +286,7 @@ export default class Component {
 
   /** Execute all handlers for the specified component event */
   public trigger(event: string, data?: PrimitiveType | PrimitiveType[] | PrimitiveMap): void {
-    $(document).trigger(`remt.${this.name}.${event}`, data);
+    $(document).trigger(`${Script.eventPrefix}.${this.name}.${event}`, data);
   }
 
   /** 
@@ -295,18 +296,18 @@ export default class Component {
   public on(event: string, handler: (event: JQuery.TriggeredEvent, data?: PrimitiveType | PrimitiveType[] | PrimitiveMap) => void): number {
     const eventList = event.split(" ");
     for (const one of eventList)
-      $(document).on(`remt.${this.name}.${one}.${this.eventIndex}`, handler);
+      $(document).on(`${Script.eventPrefix}.${this.name}.${one}.${this.eventIndex}`, handler);
     return this.eventIndex++;
   }
 
   /** Executes a handler function exactly once whe encountering a specified event */
   public one(event: string, handler: (event: JQuery.TriggeredEvent, data?: PrimitiveType | PrimitiveType[] | PrimitiveMap) => void): void {
-    $(document).one(`remt.${this.name}.${event}`, handler);
+    $(document).one(`${Script.eventPrefix}.${this.name}.${event}`, handler);
   }
 
   /** Detaches handlers from the specified component event */
   public off(event: string, eventID?: number): void {
-    $(document).off(`remt.${this.name}.${event}` + (eventID ? `.${eventID}` : ""));
+    $(document).off(`${Script.eventPrefix}.${this.name}.${event}` + (eventID ? `.${eventID}` : ""));
   }
 
   public getName(): string { return this.name; }
@@ -338,6 +339,7 @@ export default class Component {
 
   protected get prettyPrintName() { return this.name.replace(/(?<=[a-z])[A-Z]/g, " $&"); }
   protected get settingsDialogTitle() { return `${this.prettyPrintName} Settings`; }
+  // #region Reset settings
   protected get settingsIdPrefix() { return `${this.prettyPrintName.replace(/\s+/g, "-")}-setting-`; }
   protected handleResetSettingsDialogElement(e: FormData, forceConfirm = true) {
     if (
@@ -350,6 +352,18 @@ export default class Component {
     return false;
   }
   protected get resetSettingsDialogElement() { return `<label for="${this.settingsIdPrefix}resetSettings" title="Reset settings to defaults?">Reset<input type="checkbox" id="${this.settingsIdPrefix}resetSettings" name="${this.settingsIdPrefix}resetSettings" value="true" /></label>`; }
+  // #endregion Reset settings
+  // #region Enabled
+  /** Returns the current value of `this.Settings.enabled`. */
+  protected handleEnabledElement(e: FormData, forceConfirm = true) {
+    if (e.get(`${this.settingsIdPrefix}enabled`) !== "true" && (!forceConfirm || confirm(`Are you sure you want to disable ${this.prettyPrintName}? There will be no UI to undo this.`))) {
+      this.Settings.enabled = false;
+      return false;
+    }
+    return this.Settings.enabled = true;
+  }
+  protected get enabledElement() { return `<label for="${this.settingsIdPrefix}enabled" title="Enable this feature?">Enable this feature? <input type="checkbox" id="${this.settingsIdPrefix}enabled" name="${this.settingsIdPrefix}enabled" value="true" ${this.Settings.enabled ? "checked" : ""} /></label>`; }
+  // #endregion Enabled
   protected simpleSettingsCheckbox(setting: keyof typeof this.Settings/* string */, label?: string, title?: string) {
     return /* html */`
         <label for="${this.settingsIdPrefix}${setting}"${title ? ` title="${title}"` : ""}>

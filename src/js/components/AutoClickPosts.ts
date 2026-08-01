@@ -4,7 +4,10 @@ import { html } from "../utilities/HtmlTemplate";
 import Component from "./Component";
 
 /**
- * @todo What does this do?
+ * Automates clicking posts on the post search page; combined with the vanilla
+ * `Mode` selector, allows automating batch actions.
+ *
+ * @todo Add post selection mode.
  */
 export default class AutoClickPosts extends Component {
   private static readonly modeBoxSelector = "#mode-box";
@@ -116,6 +119,8 @@ export default class AutoClickPosts extends Component {
   private initSettingsMenu() {
     this.settingsMenuDialogParameters = {
       elements:[
+        $(this.enabledElement),
+        $(`<br />`),
         $(this.simpleSettingsCheckbox("hideButton", undefined)),
         $(`<br />`),
         $(this.simpleSettingsCheckbox("testMode", undefined)),
@@ -135,6 +140,7 @@ export default class AutoClickPosts extends Component {
       optionsOrTitle: "Auto-Click Posts Settings",
       then: (e: FormData) => {
         if (this.handleResetSettingsDialogElement(e)) return;
+        if (!this.handleEnabledElement(e)) return;
         this.Settings.hideButton = e.get(`${this.settingsIdPrefix}hideButton`) === "true";
         this.Settings.testMode = e.get(`${this.settingsIdPrefix}testMode`) === "true";
         this.Settings.clickBlacklisted = e.get(`${this.settingsIdPrefix}clickBlacklisted`) === "true";
