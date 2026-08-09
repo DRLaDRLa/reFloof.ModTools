@@ -2,7 +2,7 @@
     "name": "mod6ai",
     "displayName": "RE6AI Mod Tools",
     "namespace": "mod6ai.e6ai.net",
-    "version": "6.6.1",
+    "version": "6.10.0",
     "description": "Moderation toolkit for e6ai.net, a fork of RE621 Mod Tools",
     "author": "bitWolfy",
     "contributors": [
