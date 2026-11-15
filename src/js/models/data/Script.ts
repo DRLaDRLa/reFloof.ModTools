@@ -36,8 +36,8 @@ export default class Script {
     website: "https://re621.app",
     repo: GM_info.script.homepage ? Util.Network.normalizeUrl(GM_info.script.homepage) : "~~HOMEPAGE_MISSING~~",
     issues: (GM_info.script.homepage ? Util.Network.normalizeUrl(GM_info.script.homepage) : "~~HOMEPAGE_MISSING~~") + "/issues",
-    thread: "https://e6ai.net/forum_topics/227",
-    latest: "https://api.github.com/repos/DRLaDRLa/re6ai.ModTools/releases/latest",
+    thread: "https://floofgens.net/forum_topics/7",
+    latest: "https://api.github.com/repos/DRLaDRLa/reFloof.ModTools/releases/latest",
     kofi: "https://ko-fi.com/bitWolfy",
   }
 
@@ -142,6 +142,6 @@ export default class Script {
    * This project started as a slimmer version of re621; this is used for log
    * messages related to its expected presence or lack thereof.
    */
-  public static readonly companionProjectName = "re6ai";
+  public static readonly companionProjectName = "reFloof";
   // #endregion Misc
 }

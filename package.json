@@ -1,9 +1,9 @@
 {
-    "name": "mod6ai",
-    "displayName": "RE6AI Mod Tools",
-    "namespace": "mod6ai.e6ai.net",
+    "name": "modfloof",
+    "displayName": "reFloof Mod Tools",
+    "namespace": "modfloof.floofgens.net",
     "version": "6.10.0",
-    "description": "Moderation toolkit for e6ai.net, a fork of RE621 Mod Tools",
+    "description": "Moderation toolkit for floofgens.net, a fork of RE621 Mod Tools",
     "author": "bitWolfy",
     "contributors": [
         "bitWolfy <@bitWolfy#7932>",
@@ -11,14 +11,14 @@
     ],
     "main": "./dist/script.user.js",
     "license": "GPL-3.0",
-    "homepage": "https://github.com/DRLaDRLa/re6ai.ModTools",
+    "homepage": "https://github.com/DRLaDRLa/refloof.ModTools",
     "funding": "https://ko-fi.com/bitwolfy",
-    "repository": "github:DRLaDRLa/re6ai.ModTools",
+    "repository": "github:DRLaDRLa/refloof.ModTools",
     "config": {
-        "iconUri": "https://cdn.jsdelivr.net/gh/re621/re6ai@master/assets/icon64.png",
-        "icon64Uri": "https://cdn.jsdelivr.net/gh/re621/re6ai@master/assets/icon64.png",
-        "domains": ["e6ai.net"],
-        "staticDomains": ["static1.e6ai.net"]
+        "iconUri": "https://cdn.jsdelivr.net/gh/C6Yfd-dfY6C/reFloof@master/assets/icon64.png",
+        "icon64Uri": "https://cdn.jsdelivr.net/gh/C6Yfd-dfY6C/reFloof@master/assets/icon64.png",
+        "domains": ["floofgens.net"],
+        "staticDomains": ["static1.floofgens.net"]
     },
     "scripts": {
         "push": "npm version patch && git push --follow-tags",

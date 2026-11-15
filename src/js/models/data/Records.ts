@@ -9,7 +9,7 @@ export default class Records {
       rules: "tagging",
     },
     tagging: {
-      text: `[s]Strikethrough[/s] tags were invalid or inapplicable and have been removed or changed. $S\nPlease use the "Wiki":/wiki/show?title=help:home if you need help understanding the usage of any tags, or ask directly in #site-help on our "Discord":/static/discord. You can also search our "Forum":/forum_topics.`,
+      text: `[s]Strikethrough[/s] tags were invalid or inapplicable and have been removed or changed. $S\nPlease use the "Wiki":/wiki/show?title=help:home if you need help understanding the usage of any tags, or ask directly in #site-talk on our "Discord":/static/discord. You can also search our "Forum":/forum_topics.`,
       rules: "tagging",
     },
     lowtags: {
@@ -17,7 +17,7 @@ export default class Records {
       rules: "tagging"
     },
     adverts: {
-      text: "Do not advertise paid/paywalled content on e6ai.",
+      text: "Do not advertise paid/paywalled content on floofgens.",
       rules: "advertising"
     },
     inappropriate: {
@@ -57,11 +57,11 @@ export default class Records {
       rules: "plagiarism",
     },
     dnp: {
-      text: "[[director]] is Do Not Post.",
+      text: "[[artist]] is Do Not Post.",
       rules: "posting",
     },
     cdnp: {
-      text: "[[director]] is conditionally DNP.",
+      text: "[[artist]] is conditionally DNP.",
       rules: "posting",
     },
     paysite: {
@@ -189,7 +189,7 @@ export default class Records {
       title: "Advertising",
       group: this.RuleGroups.messages,
       rules: [
-        "Do not advertise on e6ai.",
+        "Do not advertise on floofgens.",
         '* No links, logos, or references to paywall services such as Patreon, SubscribeStar, Fanbox, etc.',
         '* No mentions or advertisements for paid content in profiles, post descriptions, comments, forums etc.',
         '* No posts that are intentionally watermarked, censored, compressed, degraded, or otherwise presented as teasers for paid versions.'
@@ -203,7 +203,7 @@ export default class Records {
       title: "Posting Abuse",
       group: this.RuleGroups.posts,
       rules: [
-        'Do not knowingly or repeatedly upload content that goes against the "Uploading Guidelines":/help/uploading_guidelines.', '* Do not post works made by any of the directors or publishers on the "Avoid Posting list":/static/avoid_posting or break any uploading conditions set there.', '* Do not post any commercial or pay-to-view content. "Free" pay-to-view content – where you are allowed to set the price to $0 if you so choose – cannot be posted unless 60 days have passed after it was made available for free.', "* Do not knowingly upload or share previously deleted content. If you wish to dispute a post's removal, contact the staff member responsible for the deletion via a private message.", "Do not knowingly or repeatedly upload or share unauthorized edits of artwork after the original director or character owner asked others not to.", "Do not knowingly or repeatedly upload content made by minors or featuring characters created or owned by minors.", "* Do not upload content that was made when the director was underage, even if they are of age now.", 'Do not upscale or otherwise manipulate images to artificially create a "better" version of an existing image.', "Do not upload content that is associated with recent real-life tragedies."]
+        'Do not knowingly or repeatedly upload content that goes against the "Uploading Guidelines":/help/uploading_guidelines.', '* Do not post works made by any of the artists or publishers on the "Avoid Posting list":/static/avoid_posting or break any uploading conditions set there.', '* Do not post any commercial or pay-to-view content. "Free" pay-to-view content – where you are allowed to set the price to $0 if you so choose – cannot be posted unless 60 days have passed after it was made available for free.', "* Do not knowingly upload or share previously deleted content. If you wish to dispute a post's removal, contact the staff member responsible for the deletion via a private message.", "Do not knowingly or repeatedly upload or share unauthorized edits of artwork after the original artist or character owner asked others not to.", "Do not knowingly or repeatedly upload content made by minors or featuring characters created or owned by minors.", "* Do not upload content that was made when the artist was underage, even if they are of age now.", 'Do not upscale or otherwise manipulate images to artificially create a "better" version of an existing image.', "Do not upload content that is associated with recent real-life tragedies."]
     },
     insufficient_tagging: {
       title: "Insufficient tagging",
@@ -214,7 +214,7 @@ export default class Records {
         '* Use the "wiki":/wiki/show?title=help:home if you need help understanding the usage of any tags, or ask us on "Discord":/static/discord. You can also search our "Forum":/forum_topics.'
       ],
       postface: 'This restriction will be eased if the post does not have ten distinct tags that are reasonably applicable to it.',
-      link: "/wiki_pages/e6ai:rules#tagging"
+      link: "/wiki_pages/floof:rules#tagging"
     },
     tagging: {
       title: "Tagging, Rating, and Sourcing Abuse",
@@ -222,8 +222,8 @@ export default class Records {
       rules: [
         "Do not add any tags that are invalid, and do not remove tags that are valid.",
         "* Tags in the general category are considered valid if they follow the \"Tag What You See principle\":/wiki_pages/tag_what_you_see – that is, they must be describing what is visible in the post.",
-        "* Tags in the lore category convey the director's intentions or other background information.",
-        "* Tags in other categories are valid if the information that they convey is objectively true, such as the director's name or the image's aspect ratio.",
+        "* Tags in the lore category convey the artist's intentions or other background information.",
+        "* Tags in other categories are valid if the information that they convey is objectively true, such as the artist's name or the image's aspect ratio.",
         "Do not upload posts with fewer than ten general, non-implied tags.",
         "* This restriction will be eased if the post does not have ten distinct tags that are reasonably applicable to it.",
         "Do not use tag or description edits to be disruptive.",
@@ -232,9 +232,9 @@ export default class Records {
         null,
         "Do not add any sources that are invalid, and do not remove any sources that are valid.",
         "* Valid sources are defined as web pages where the artwork can be found.",
-        "* At least one source page should be publicly available, unless you are the director, commissioner, or copyright owner of the artwork.",
+        "* At least one source page should be publicly available, unless you are the artist, commissioner, or copyright owner of the artwork.",
         "* Do not use links to piracy sites as sources.",
-        "* Links to the exact submission page where the artwork can be found should be prioritized. This is not the same as the direct image link, which isn’t helpful. Links to the director's gallery pages should be added to their director page.",
+        "* Links to the exact submission page where the artwork can be found should be prioritized. This is not the same as the direct image link, which isn’t helpful. Links to the artist's gallery pages should be added to their artist page.",
         "* Do not add source links that redirect to a different URL (eg. URL shorteners).",
         "* Dead links to pages where the artwork could be found in the past are still considered valid and should instead be disabled by prefixing them with `-`.",
       ]
@@ -249,7 +249,7 @@ export default class Records {
         "* Translating non-English text into English.",
         "* Deciphering a coded message.",
         "* Correcting spelling and grammatical mistakes in text.",
-        "Do not add any notes in languages other than English or that go against the \"Translation Guidelines\":/wiki_pages/e6ai:translation.",
+        "Do not add any notes in languages other than English or that go against the \"Translation Guidelines\":/wiki_pages/floof:translation.",
       ]
     },
     plagiarism: {

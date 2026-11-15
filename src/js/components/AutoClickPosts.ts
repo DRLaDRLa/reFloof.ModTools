@@ -13,7 +13,7 @@ export default class AutoClickPosts extends Component {
   private static readonly modeBoxSelector = "#mode-box";
   private static readonly matchesBlacklistClass = "filter-matches";
   private static readonly isBlacklistedClass = "blacklisted";
-  private static readonly re6aiMatcher = ".post-index #content post";
+  private static readonly reFloofMatcher = ".post-index #content post";
   private static readonly buttonLabel = "Auto-Click Posts";
   private static readonly buttonLabelWaiting = "Cancel Auto-Clicks";
   public constructor() {
