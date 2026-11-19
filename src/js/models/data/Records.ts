@@ -214,7 +214,7 @@ export default class Records {
         '* Use the "wiki":/wiki/show?title=help:home if you need help understanding the usage of any tags, or ask us on "Discord":/static/discord. You can also search our "Forum":/forum_topics.'
       ],
       postface: 'This restriction will be eased if the post does not have ten distinct tags that are reasonably applicable to it.',
-      link: "/wiki_pages/floof:rules#tagging"
+      link: `/wiki_pages/${Script.siteNameWikiPrefix}:rules#tagging`
     },
     tagging: {
       title: "Tagging, Rating, and Sourcing Abuse",
@@ -249,7 +249,7 @@ export default class Records {
         "* Translating non-English text into English.",
         "* Deciphering a coded message.",
         "* Correcting spelling and grammatical mistakes in text.",
-        "Do not add any notes in languages other than English or that go against the \"Translation Guidelines\":/wiki_pages/floof:translation.",
+        `Do not add any notes in languages other than English or that go against the \"Translation Guidelines\":/wiki_pages/${Script.siteNameWikiPrefix}:translation.`,
       ]
     },
     plagiarism: {

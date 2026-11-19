@@ -133,7 +133,7 @@ export default class Script {
    *
    * E.g. For e621 & e926, `e621` (as used for `[[e621:rules]]`, et. al.).
    */
-  public static readonly siteNameWikiPrefix = this.primarySecondLevelDomain;
+  public static readonly siteNameWikiPrefix = "floof";
 
   // #region Misc
   /**
